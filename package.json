@@ -8,7 +8,7 @@
         "build": "tsc",
         "prestart": "npm run build",
         "rollup": "rollup -c",
-        "run": "node ./dist/index.js",
+        "run": "node --trace-warnings ./dist/index.js",
         "syncyarn": "npx syncyarnlock --save --keepPrefix"
     },
     "author": "Yuee",
@@ -26,5 +26,8 @@
         "rollup": "^2.71.1",
         "tslib": "^2.4.0",
         "typescript": "^4.6.4"
+    },
+    "dependencies": {
+        "form-data": "^4.0.0"
     }
 }

@@ -1,6 +1,5 @@
-const a = {
-    b: 100,
-};
-const b = 1;
-console.log('aaa');
-export default a;
+import { HuijiWiki } from './HuijiWiki/HuijiWiki';
+
+const test = new HuijiWiki('danteng');
+
+test.login('Yuee bot', '');
