@@ -1,8 +1,8 @@
-import resolve from '@rollup/plugin-node-resolve';
 import commonjs from '@rollup/plugin-commonjs';
-import typescript from '@rollup/plugin-typescript';
 import json from '@rollup/plugin-json';
-import { terser } from 'rollup-plugin-terser';
+import resolve from '@rollup/plugin-node-resolve';
+import terser from '@rollup/plugin-terser';
+import typescript from '@rollup/plugin-typescript';
 
 export default {
     input: 'src/index.ts', // 打包入口
@@ -13,7 +13,6 @@ export default {
         format: 'umd', // umd是兼容amd/cjs/iife的通用打包格式，适合浏览器
         name: 'HuijiWiki', // 指定打包后的模块变量名
         exports: 'named', // 导出模块的方式
-        external: ['package.json'],
     },
     plugins: [
         // 打包插件
