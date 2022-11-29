@@ -1,16 +1,15 @@
 export class HuijiCookies {
     private cookies: Record<string, string> = {};
 
-    constructor(cookies?: string) {
+    constructor(cookies?: string[]) {
         this.cookies = {};
         if (cookies) {
             this.setCookies(cookies);
         }
     }
 
-    setCookies(cookies: string) {
-        const cookiesParts = cookies.split(',');
-        for (const cookiePart of cookiesParts) {
+    setCookies(cookies: string[]) {
+        for (const cookiePart of cookies) {
             const cookieList = cookiePart.split(';');
             for (const cookie of cookieList) {
                 const [key, value] = cookie.trim().split('=');

@@ -1,3 +1,4 @@
+import axios from 'axios';
 import { HuijiWikiSession } from './HuijiWiki';
 
 type RequestParams = { action: string; method?: 'GET' | 'POST' } & Record<string, any>;
@@ -15,10 +16,13 @@ export class HuijiRequests {
         this.params = params;
         this.params.format = 'json';
         this.params.utf8 = '1';
-        this.method = params.method || this.getMethod();
+        this.method = this.getMethod();
     }
 
     getMethod() {
+        if (this.params.method) {
+            return this.params.method;
+        }
         if (this.params.action === 'query') {
             return 'GET';
         }
@@ -35,8 +39,8 @@ export class HuijiRequests {
     async execute<T = any>(): Promise<T> {
         const res = this.method === 'GET' ? await this.handleGet() : await this.handlePost();
         if (res.status === 200) {
-            this.session.cookie.setCookies(res.headers.get('set-cookie') || '');
-            this.result = await res.json();
+            this.session.cookie.setCookies(res.headers['set-cookie'] || []);
+            this.result = res.data;
             if (this.result.error) {
                 throw new Error(this.result.error.info);
             }
@@ -52,7 +56,8 @@ export class HuijiRequests {
     }
 
     private async handleGet() {
-        return await fetch(this.session.apiUrl + '?' + new URLSearchParams(this.params), {
+        return await axios.request({
+            url: this.session.apiUrl + '?' + new URLSearchParams(this.params),
             method: 'GET',
             headers: {
                 ...this.session.headers,
@@ -62,12 +67,14 @@ export class HuijiRequests {
     }
 
     private async handlePost() {
-        return await fetch(this.session.apiUrl, {
+        return await axios.request({
+            url: this.session.apiUrl,
             method: 'POST',
-            body: new URLSearchParams(this.params),
+            data: new URLSearchParams(this.params),
             headers: {
                 ...this.session.headers,
                 cookie: this.session.cookie.getCookies(),
+                'Content-Type': 'application/x-www-form-urlencoded',
             },
         });
     }
