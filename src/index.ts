@@ -1,5 +1,22 @@
 import { HuijiWiki } from './HuijiWiki/HuijiWiki';
 
-const test = new HuijiWiki('danteng');
+async function tryTest() {
+    const test = new HuijiWiki('danteng');
+    if (await test.login('Yuee bot', '')) {
+        console.log('login success');
+    } else {
+        console.log('login failed');
+        return;
+    }
 
-test.login('Yuee bot', '');
+    const res = await test.edit('Testabc', 'testcontentB', {
+        summary: 'test',
+        isBot: false,
+    });
+
+    console.log(JSON.stringify(res));
+}
+
+tryTest();
+
+export { HuijiWiki };
