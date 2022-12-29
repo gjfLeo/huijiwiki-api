@@ -60,6 +60,28 @@ export interface MWResponseQueryCategoryMembers extends MWResponseBase {
     };
 }
 
+export interface MWResponseQueryPropRevisions extends MWResponseBase {
+    query: {
+        pages: {
+            [key: string]: {
+                pageid: number;
+                ns: number;
+                title: string;
+                missing?: '';
+                revisions: {
+                    slots: {
+                        main: {
+                            contentmodel: string;
+                            contentformat: string;
+                            '*': string;
+                        };
+                    };
+                }[];
+            };
+        };
+    };
+}
+
 export interface MWResponseAsk<T = any> extends MWResponseBase {
     /**
      * continue时的参数

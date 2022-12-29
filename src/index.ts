@@ -15,9 +15,10 @@ async function tryTest() {
     //     // isBot: false,
     // });
     const filepath = 'D:\\Pictures\\IMG_0089.JPG';
-    console.log(filepath);
+    // console.log(filepath);
     // const res = await test.uploadImage(filepath, 'elysia.jpg', { comment: 'test' });
-    const res = await test.undeletePage('文件:Elysia.png', 'test undel');
+    // const res = await test.undeletePage('文件:Elysia.png', 'test undel');
+    const res = await test.getPageRawTextByTitles(['Aaaa', '博客:Abcd']);
 
     console.log(JSON.stringify(res));
 }
