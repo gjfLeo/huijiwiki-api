@@ -7,6 +7,8 @@ import {
     MWResponseClientLogin,
     MWResponseDelete,
     MWResponseEdit,
+    MWResponseMove,
+    MWResponsePurge,
     MWResponseQueryAllPages,
     MWResponseQueryCategoryMembers,
     MWResponseQueryPropRevisions,
@@ -261,14 +263,14 @@ export class HuijiWiki {
      * @param titles 条目标题列表
      * @returns API 返回值
      */
-    async apiQueryPropRevisions(filter: { titles?: string[]; ids?: number[] }) {
+    async apiQueryPropRevisions(filter: { titles?: string[]; pageids?: number[] }) {
         const titles = filter.titles ?? [];
-        const ids = filter.ids ?? [];
+        const pageids = filter.pageids ?? [];
         let finalFilter = {} as { [key: string]: string | number };
         if (titles.length > 0) {
             finalFilter['titles'] = titles.join('|');
-        } else if (ids.length > 0) {
-            finalFilter['pageids'] = ids.join('|');
+        } else if (pageids.length > 0) {
+            finalFilter['pageids'] = pageids.join('|');
         } else {
             return {
                 error: {
@@ -361,6 +363,73 @@ export class HuijiWiki {
             title: title,
             token: csrfToken,
             reason: reason ?? '',
+        });
+    }
+
+    /**
+     * Purge API
+     * @param filter 需要清理的条目
+     * @returns API 返回值
+     */
+    async apiPurge(filter: { titles?: string[]; pageids?: number[] }) {
+        const titles = filter.titles ?? [];
+        const pageids = filter.pageids ?? [];
+        let finalFilter = {} as { [key: string]: string | number };
+        if (titles.length > 0) {
+            finalFilter['titles'] = titles.join('|');
+        } else if (pageids.length > 0) {
+            finalFilter['pageids'] = pageids.join('|');
+        } else {
+            return {
+                error: {
+                    code: 'no-title-or-id',
+                    info: '没有提供标题或ID',
+                },
+            } as MWResponsePurge;
+        }
+
+        return await this.huijiRequester.request<MWResponsePurge>({
+            action: 'purge',
+            ...finalFilter,
+            forcerecursivelinkupdate: '1',
+        });
+    }
+
+    /**
+     * Move API
+     * @param from 原始条目标题
+     * @param to 目标条目标题
+     * @param options 选项
+     * @returns API 返回值
+     */
+    async apiMove(
+        from: string,
+        to: string,
+        options?: {
+            reason?: string;
+            movetalk?: boolean;
+            movesubpages?: boolean;
+            noredirect?: boolean;
+        }
+    ) {
+        const csrfToken = await this.apiQueryCsrfToken();
+        if (csrfToken === '') {
+            return this.resultCsrfTokenMissing<MWResponseMove>();
+        }
+
+        const finalOptions = {} as { [key: string]: string };
+        options?.movetalk && (finalOptions.movetalk = '1');
+        options?.movesubpages && (finalOptions.movesubpages = '1');
+        options?.noredirect && (finalOptions.noredirect = '1');
+
+        return await this.huijiRequester.request<MWResponseMove>({
+            action: 'move',
+            from: from,
+            to: to,
+            token: csrfToken,
+            reason: options?.reason ?? '',
+            ...finalOptions,
+            ignorewarnings: '1',
         });
     }
 
@@ -458,7 +527,7 @@ export class HuijiWiki {
     }
 
     async getPageRawTextByPageIds(pageIds: number[]) {
-        const res = await this.apiQueryPropRevisions({ ids: pageIds });
+        const res = await this.apiQueryPropRevisions({ pageids: pageIds });
         return this.cleanQueryPropRevisionsResult(res, true);
     }
 
@@ -524,10 +593,35 @@ export class HuijiWiki {
         return await this.apiUndelete(title, reason);
     }
 
-    // 刷新页面缓存 / 空编辑
+    /**
+     * 清理页面缓存
+     * @param titles 要清理的条目标题
+     * @returns 操作结果
+     */
+    async purgePage(titles: string[]) {
+        return await this.apiPurge({ titles });
+    }
+
+    /**
+     * 移动条目
+     * @param from 原始条目标题
+     * @param to 目标条目标题
+     * @param options 选项
+     * @returns 操作结果
+     */
+    async movePage(
+        from: string,
+        to: string,
+        options?: {
+            reason?: string;
+            movetalk?: boolean;
+            movesubpages?: boolean;
+            noredirect?: boolean;
+        }
+    ) {
+        return await this.apiMove(from, to, options);
+    }
 
     // 获取重定向
-
-    // MOVE
     // 回退编辑（后面再做）
 }

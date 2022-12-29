@@ -120,6 +120,16 @@ export interface MWResponseAsk<T = any> extends MWResponseBase {
     };
 }
 
+export interface MWResponsePurge extends MWResponseBase {
+    purge: {
+        [key: string]: {
+            ns: number;
+            title: string;
+            purged: boolean;
+        };
+    };
+}
+
 ////////////////////////////////////////
 // 编辑相关
 ////////////////////////////////////////
@@ -154,6 +164,14 @@ export interface MWResponseDelete extends MWResponseBase {
 export interface MWResponseUndelete extends MWResponseBase {
     undelete: {
         title: string;
+        reason: string;
+    };
+}
+
+export interface MWResponseMove extends MWResponseBase {
+    move: {
+        from: string;
+        to: string;
         reason: string;
     };
 }
