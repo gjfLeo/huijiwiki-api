@@ -12,7 +12,7 @@
         /* BUILD时使用下面的参数 */
         // "module": "CommonJS" /* Specify what module code is generated. */
         /* DEBUG使用下面的参数 */
-        "module": "CommonJS" /* Specify what module code is generated. */,
-        "sourceMap": true /* Create source map files for emitted JavaScript files. */
+        "module": "CommonJS" /* Specify what module code is generated. */
+        // "sourceMap": true /* Create source map files for emitted JavaScript files. */
     }
 }
