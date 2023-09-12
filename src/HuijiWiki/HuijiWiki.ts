@@ -8,6 +8,7 @@ import {
     MWResponseClientLogin,
     MWResponseDelete,
     MWResponseEdit,
+    MWResponseLogin,
     MWResponseMove,
     MWResponsePurge,
     MWResponseQueryListAllPages,
@@ -119,6 +120,14 @@ export class HuijiWiki {
     async apiLogin(username: string, password: string) {
         username = username.trim();
         password = password.trim();
+        if (username.indexOf('@') === -1) {
+            return await this.clientlogin(username, password);
+        } else {
+            return await this.login(username, password);
+        }
+    }
+
+    private async clientlogin(username: string, password: string) {
         let loginToken = '';
         {
             const resToken = await this.requester.request<MWResponseQueryTokens>({
@@ -128,24 +137,66 @@ export class HuijiWiki {
             });
             loginToken = resToken.query.tokens.logintoken;
         }
+        const resLogin = await this.requester.request<MWResponseClientLogin>({
+            action: 'clientlogin',
+            username: username,
+            password: password,
+            logintoken: loginToken,
+            loginreturnurl: `https://${this.prefix}.huijiwiki.com`,
+            rememberMe: '1',
+        });
+        if (resLogin.clientlogin.status === 'PASS') {
+            this.username = resLogin.clientlogin.username;
+            // 记录下以备后续重新登录用
+            this.loginUsername = username;
+            this.loginPassword = password;
+            this.log(`登录成功，用户名：${this.username}`);
+            return true;
+        } else {
+            this.error(`登录失败，错误信息：${resLogin.clientlogin.message}`);
+            return false;
+        }
+    }
+
+    private async login(username: string, password: string) {
+        let lgtoken = '';
         {
-            const resLogin = await this.requester.request<MWResponseClientLogin>({
-                action: 'clientlogin',
-                username: username,
-                password: password,
-                logintoken: loginToken,
-                loginreturnurl: `https://${this.prefix}.huijiwiki.com`,
-                rememberMe: '1',
+            const resLogin = await this.requester.request<MWResponseLogin>({
+                action: 'login',
+                lgname: username,
+                lgpassword: password,
             });
-            if (resLogin.clientlogin.status === 'PASS') {
-                this.username = resLogin.clientlogin.username;
+
+            if (resLogin.login.result === 'NeedToken') {
+                lgtoken = resLogin.login.token;
+            }
+        }
+
+        if (lgtoken === '') {
+            this.error(`登录失败，无法获取登录Token`);
+            return false;
+        }
+
+        {
+            const resLogin = await this.requester.request<MWResponseLogin>({
+                action: 'login',
+                lgname: username,
+                lgpassword: password,
+                lgtoken,
+            });
+
+            if (resLogin.login.result === 'Success') {
+                this.username = resLogin.login.lgusername;
                 // 记录下以备后续重新登录用
                 this.loginUsername = username;
                 this.loginPassword = password;
                 this.log(`登录成功，用户名：${this.username}`);
                 return true;
+            } else if (resLogin.login.result === 'Failed') {
+                this.error(`登录失败，错误信息：${resLogin.login.reason}`);
+                return false;
             } else {
-                this.error(`登录失败，错误信息：${resLogin.clientlogin.message}`);
+                this.error(`登录失败，未知错误`);
                 return false;
             }
         }

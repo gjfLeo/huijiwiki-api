@@ -1,6 +1,3 @@
-import fs from 'fs';
-import path from 'node:path';
-import PQueue from 'p-queue';
 import { HuijiWiki } from './HuijiWiki/HuijiWiki';
 import { TESTBOT_PASSWORD, TESTBOT_USERNAME } from './secret';
 
@@ -29,22 +26,26 @@ async function tryTest() {
     if (!(await wiki.apiLogin(TESTBOT_USERNAME, TESTBOT_PASSWORD))) {
         throw new Error('登录失败！');
     }
-    const pq = new PQueue({
-        concurrency: 10,
-    });
+    console.log('登录成功，开始测试编辑');
 
-    const dir = fs.readdirSync(UPLOAD_PATH);
+    const result = await wiki.editPage('AAAA', 'bbbb');
+    console.log(result);
+    // const pq = new PQueue({
+    //     concurrency: 10,
+    // });
 
-    for (const fileName of dir) {
-        // 如果是文件夹，跳过
-        if (fs.statSync(path.join(UPLOAD_PATH, fileName)).isDirectory()) {
-            continue;
-        }
+    // const dir = fs.readdirSync(UPLOAD_PATH);
 
-        pq.add(() => upload(wiki, fileName));
-    }
+    // for (const fileName of dir) {
+    //     // 如果是文件夹，跳过
+    //     if (fs.statSync(path.join(UPLOAD_PATH, fileName)).isDirectory()) {
+    //         continue;
+    //     }
 
-    await pq.onIdle();
+    //     pq.add(() => upload(wiki, fileName));
+    // }
+
+    // await pq.onIdle();
 }
 
 tryTest();

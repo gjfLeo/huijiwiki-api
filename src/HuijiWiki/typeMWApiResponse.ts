@@ -17,6 +17,23 @@ export interface MWResponseClientLogin extends MWResponseBase {
     };
 }
 
+export interface MWResponseLogin extends MWResponseBase {
+    login:
+        | {
+              result: 'NeedToken';
+              token: string;
+          }
+        | {
+              result: 'Failed';
+              reason: string;
+          }
+        | {
+              result: 'Success';
+              lguserid: number;
+              lgusername: string;
+          };
+}
+
 ////////////////////////////////////////
 // QUERY
 ////////////////////////////////////////
