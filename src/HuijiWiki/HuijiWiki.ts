@@ -1,6 +1,6 @@
 import { readFileSync } from 'fs';
 import { HuijiLocalCache } from './HuijiLocalCache';
-import { HuijiRequester } from './HuijiRequester';
+import { HuijiRequester, RequestParams } from './HuijiRequester';
 import {
     MWPage,
     MWResponseAsk,
@@ -214,6 +214,15 @@ export class HuijiWiki {
         }
 
         return res;
+    }
+
+    /**
+     * 自定义请求
+     * @param params 请求参数
+     * @param method 请求方法
+     */
+    async request(params: RequestParams, method?: 'GET' | 'POST'): Promise<MWResponseBase> {
+        return await this.requester.request<MWResponseBase>(params, method);
     }
 
     /**

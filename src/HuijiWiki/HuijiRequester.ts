@@ -3,7 +3,7 @@ import FormData from 'form-data';
 import { HuijiCookies } from './HuijiCookie';
 import { MWResponseBase, MWResponseUpload } from './typeMWApiResponse';
 
-type RequestParams = { action: string; method?: 'GET' | 'POST' } & Record<string, any>;
+export type RequestParams = { action: string; method?: 'GET' | 'POST' } & Record<string, any>;
 
 export class HuijiRequester {
     private prefix: string;
@@ -27,6 +27,9 @@ export class HuijiRequester {
     }
 
     static getMethod(params: RequestParams) {
+        if (params.method) {
+            return params.method;
+        }
         if (params.action === 'query') {
             return 'GET';
         }
