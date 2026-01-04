@@ -19,8 +19,22 @@ export class HuijiTabx<T extends Record<string, any> = Record<string, any>> {
             properties: (() => {
                 const properties: Record<string, JSONSchema> = {};
                 raw.schema.fields.forEach((field) => {
-                    if (['string', 'number', 'boolean'].includes(field.type)) {
-                        properties[field.title.en] = { type: ['null', field.type as 'string' | 'number' | 'boolean'] };
+                    const fieldName = field.title.en;
+                    const isArray = fieldName.endsWith('[]');
+                    const cleanFieldName = isArray ? fieldName.slice(0, -2) : fieldName;
+
+                    if (isArray) {
+                        // 数组字段必须是 string 类型
+                        if (field.type !== 'string') {
+                            throw new Error(`Array field must be string type, field: ${field.title.en}`);
+                        }
+                        properties[cleanFieldName] = {
+                            type: ['null', 'array'],
+                            items: { type: 'string' },
+                        };
+                    } else if (['string', 'number', 'boolean'].includes(field.type)) {
+                        // 普通类型：允许 null 或指定类型
+                        properties[cleanFieldName] = { type: ['null', field.type as 'string' | 'number' | 'boolean'] };
                     } else {
                         throw new Error(`Invalid field type, field: ${field.title.en}`);
                     }
@@ -108,7 +122,26 @@ export class HuijiTabx<T extends Record<string, any> = Record<string, any>> {
         return raw.data.map((row) => {
             const obj: Record<string, any> = {};
             raw.schema.fields.forEach((field, i) => {
-                obj[field.title.en] = row[i];
+                const fieldName = field.title.en;
+                const isArray = fieldName.endsWith('[]');
+                const cleanFieldName = isArray ? fieldName.slice(0, -2) : fieldName;
+
+                if (isArray) {
+                    if (row[i] === null) {
+                        // 如果是 null，转换为空数组
+                        obj[cleanFieldName] = [];
+                    } else if (typeof row[i] === 'string') {
+                        // 将字符串以 ; 分割为数组
+                        obj[cleanFieldName] = row[i]
+                            .split(';')
+                            .map((s) => s.trim())
+                            .filter((s) => s !== '');
+                    } else {
+                        obj[cleanFieldName] = [];
+                    }
+                } else {
+                    obj[cleanFieldName] = row[i];
+                }
             });
             this.validateRow(obj);
             return obj as T;
@@ -163,7 +196,18 @@ export class HuijiTabx<T extends Record<string, any> = Record<string, any>> {
             sources: this.sources,
             schema: this.raw.schema,
             data: this.data.map((row) => {
-                return this.raw.schema.fields.map((field) => row[field.title.en] ?? null);
+                return this.raw.schema.fields.map((field) => {
+                    const fieldName = field.title.en;
+                    const isArray = fieldName.endsWith('[]');
+                    const cleanFieldName = isArray ? fieldName.slice(0, -2) : fieldName;
+                    const value = row[cleanFieldName];
+
+                    if (isArray && Array.isArray(value)) {
+                        // 如果是空数组，返回 null；否则将数组以 ; 连接为字符串
+                        return value.length === 0 ? null : value.join(';');
+                    }
+                    return value ?? null;
+                });
             }),
         };
     }
