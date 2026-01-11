@@ -362,6 +362,7 @@ export class HuijiWiki {
     async apiQueryListAllPages(
         filter?: {
             namespace?: number;
+            prefix?: string;
             // 以后需要别的再加
         },
         options?: { limit?: number; continue?: string }
@@ -371,6 +372,9 @@ export class HuijiWiki {
         const finalFilter = {} as { [key: string]: string | number };
         if (filter?.namespace !== undefined) {
             finalFilter['apnamespace'] = filter.namespace;
+        }
+        if (filter?.prefix !== undefined) {
+            finalFilter['apprefix'] = filter.prefix;
         }
 
         return await this.requester.request<MWResponseQueryListAllPages>({
