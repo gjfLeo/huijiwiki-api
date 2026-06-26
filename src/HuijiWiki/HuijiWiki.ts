@@ -183,9 +183,8 @@ export class HuijiWiki {
                 loginreturnurl: `https://${this.prefix}.huijiwiki.com`,
                 rememberMe: '1',
             });
-            return await this.clientlogin(username, password);
+            return this.clientlogin(username, password);
         }
-        // 重新执行clientlogin
         const resLogin = await this.requester.request<MWResponseClientLogin>({
             action: 'clientlogin',
             username: username,
