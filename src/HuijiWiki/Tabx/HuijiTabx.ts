@@ -236,7 +236,7 @@ export class HuijiTabx<T extends Record<string, any> = Record<string, any>> {
     }
 }
 
-const ajv = new Ajv();
+const ajv = new Ajv({ allowUnionTypes: true });
 const tabxRawValidator = ajv.compile(HuijiTabxRawSchame);
 
 const validateJsonIsTabx = (json: any) => {
